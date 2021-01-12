@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+  mysql:
+    container_name: cat-api-mysql
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_DATABASE: 'cat-api'
+      MYSQL_USER: 'cat-api'
+      MYSQL_PASSWORD: 'cat-api'
+    ports:
+      - 3306:3306
+    volumes:
+      - './.mysql-data:/var/lib/mysql'
+    command: --default-authentication-plugin=mysql_native_password
+
+  adminer:
+    container_name: cat-api-adminer
+    image: adminer
+    restart: always
+    ports:
+      - 8808:8080
