@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,11 +30,39 @@ func TestPingRoute(t *testing.T) {
 	assert.Equal(t, "pong", w.Body.String())
 }
 
+func TestBreedsRouteWithoutJWT(t *testing.T) {
+	api := setup()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/breeds", nil)
+	api.Router.ServeHTTP(w, req)
+
+	assert.Equal(t, 401, w.Code)
+}
+
+func TestBreedsRouteWithInvalidJWT(t *testing.T) {
+	api := setup()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/breeds", nil)
+
+	jwt := "foo"
+	req.Header.Add("Authorization", "Bearer " + jwt)
+
+	api.Router.ServeHTTP(w, req)
+
+	assert.Equal(t, 401, w.Code)
+}
+
 func TestBreedsRouteWithoutName(t *testing.T) {
 	api := setup()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/breeds", nil)
+
+	jwt := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.t-IDcSemACt8x4iTMCda8Yhe3iZaWbvV5XKSTbuAn0M"
+	req.Header.Add("Authorization", "Bearer " + jwt)
+
 	api.Router.ServeHTTP(w, req)
 
 	assert.Equal(t, 400, w.Code)
@@ -45,6 +74,10 @@ func TestBreedsRouteWithoutRecords(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/breeds?name=foo", nil)
+
+	jwt := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.t-IDcSemACt8x4iTMCda8Yhe3iZaWbvV5XKSTbuAn0M"
+	req.Header.Add("Authorization", "Bearer " + jwt)
+
 	api.Router.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
@@ -56,6 +89,10 @@ func TestBreedsRouteWithNameSib(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/breeds?name=sib", nil)
+
+	jwt := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.t-IDcSemACt8x4iTMCda8Yhe3iZaWbvV5XKSTbuAn0M"
+	req.Header.Add("Authorization", "Bearer " + jwt)
+
 	api.Router.ServeHTTP(w, req)
 
     var cats []Cat
@@ -78,7 +115,7 @@ func TestLoginRouteSuccess(t *testing.T) {
 	api.Router.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "login ok", w.Body.String())
+	assert.Equal(t, true, strings.HasPrefix(w.Body.String(), "eyJ"))
 
 }
 

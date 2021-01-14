@@ -5,10 +5,12 @@ import (
     "io/ioutil"
     "net/http"
 
+    "github.com/dgrijalva/jwt-go"
     "github.com/gin-gonic/gin"
     "golang.org/x/crypto/bcrypt"
     "gorm.io/driver/mysql"
     "gorm.io/gorm"
+    j "github.com/gin-gonic/contrib/jwt"
 )
 
 type Api struct {
@@ -69,7 +71,7 @@ func setupRouter(api Api) *gin.Engine {
         c.String(200, "pong")
     })
 
-    r.GET("/breeds", func(c *gin.Context) {
+    r.GET("/breeds", j.Auth("secret"), func(c *gin.Context) {
         name := c.Query("name")
         if name == "" {
             c.String(400, "invalid breed name")
@@ -117,7 +119,13 @@ func setupRouter(api Api) *gin.Engine {
             return
         }
 
-        c.String(200, "login ok")
+        token, err := jwt.New(jwt.SigningMethodHS256).SignedString([]byte("secret"))
+        if err != nil {
+            c.String(500, "failed to generate jwt")
+            return
+        }
+
+        c.String(200, token)
     })
 
     return r
