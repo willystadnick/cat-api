@@ -5,22 +5,15 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func setup() Api {
-    var api Api
-    api.Database = setupDatabase()
-    api.Router = setupRouter(api)
-
-	return api
-}
-
 func TestPingRoute(t *testing.T) {
-	api := setup()
+	api := setupApi()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping", nil)
@@ -31,7 +24,7 @@ func TestPingRoute(t *testing.T) {
 }
 
 func TestBreedsRouteWithoutJWT(t *testing.T) {
-	api := setup()
+	api := setupApi()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/breeds", nil)
@@ -41,7 +34,7 @@ func TestBreedsRouteWithoutJWT(t *testing.T) {
 }
 
 func TestBreedsRouteWithInvalidJWT(t *testing.T) {
-	api := setup()
+	api := setupApi()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/breeds", nil)
@@ -55,7 +48,7 @@ func TestBreedsRouteWithInvalidJWT(t *testing.T) {
 }
 
 func TestBreedsRouteWithoutName(t *testing.T) {
-	api := setup()
+	api := setupApi()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/breeds", nil)
@@ -70,7 +63,7 @@ func TestBreedsRouteWithoutName(t *testing.T) {
 }
 
 func TestBreedsRouteWithoutRecords(t *testing.T) {
-	api := setup()
+	api := setupApi()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/breeds?name=foo", nil)
@@ -85,7 +78,7 @@ func TestBreedsRouteWithoutRecords(t *testing.T) {
 }
 
 func TestBreedsRouteWithNameSib(t *testing.T) {
-	api := setup()
+	api := setupApi()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/breeds?name=sib", nil)
@@ -103,11 +96,11 @@ func TestBreedsRouteWithNameSib(t *testing.T) {
 }
 
 func TestLoginRouteSuccess(t *testing.T) {
-	api := setup()
+	api := setupApi()
 
 	body, _ := json.Marshal(map[string]string{
 		"username": "admin",
-		"password": "@#$RF@!718",
+		"password": os.Getenv("ADMIN_PASS"),
 	})
 
 	w := httptest.NewRecorder()
@@ -120,7 +113,7 @@ func TestLoginRouteSuccess(t *testing.T) {
 }
 
 func TestLoginRouteInvalidCredentials(t *testing.T) {
-	api := setup()
+	api := setupApi()
 
 	body, _ := json.Marshal(map[string]string{
 		"username": "admin",

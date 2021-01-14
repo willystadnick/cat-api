@@ -8,8 +8,16 @@ Cat API made with Go 1.15
 
 ## Setup
 
+In development, you can use docker-compose to build database infrastructure:
+
 ```
 docker-compose up -d
+```
+
+Copy the environment variables file and adjust it accordingly:
+
+```
+cp .env.example .env
 ```
 
 ## Run

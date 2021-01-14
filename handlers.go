@@ -4,6 +4,7 @@ import (
     "encoding/json"
     "io/ioutil"
     "net/http"
+    "os"
 
     "github.com/dgrijalva/jwt-go"
     "github.com/gin-gonic/gin"
@@ -32,7 +33,7 @@ func breeds(api Api) func(c *gin.Context) {
             if err != nil {
                 panic(err)
             }
-            req.Header.Add("x-api-key", "DEMO-API-KEY")
+            req.Header.Add("x-api-key", os.Getenv("THECATAPI_KEY"))
             res, err := cli.Do(req)
             if err != nil {
                 panic(err)
@@ -67,7 +68,7 @@ func login(api Api) func(c *gin.Context) {
             return
         }
 
-        token, err := jwt.New(jwt.SigningMethodHS256).SignedString([]byte("secret"))
+        token, err := jwt.New(jwt.SigningMethodHS256).SignedString([]byte(os.Getenv("JWT_SECRET")))
         if err != nil {
             c.String(500, "failed to generate jwt")
             return
