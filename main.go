@@ -1,29 +1,12 @@
 package main
 
 import (
-
     "github.com/gin-gonic/gin"
     "golang.org/x/crypto/bcrypt"
     "gorm.io/driver/mysql"
     "gorm.io/gorm"
     j "github.com/gin-gonic/contrib/jwt"
 )
-
-type Api struct {
-    Database *gorm.DB
-    Router *gin.Engine
-}
-
-type Cat struct {
-    gorm.Model
-    Name string
-}
-
-type User struct {
-    gorm.Model
-    Username string
-    Password string
-}
 
 func main() {
     var api Api
