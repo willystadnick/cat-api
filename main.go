@@ -6,6 +6,7 @@ import (
     "net/http"
 
     "github.com/gin-gonic/gin"
+    "golang.org/x/crypto/bcrypt"
     "gorm.io/driver/mysql"
     "gorm.io/gorm"
 )
@@ -18,6 +19,12 @@ type Api struct {
 type Cat struct {
     gorm.Model
     Name string
+}
+
+type User struct {
+    gorm.Model
+    Username string
+    Password string
 }
 
 func main() {
@@ -35,6 +42,22 @@ func setupDatabase() *gorm.DB {
     }
 
     db.AutoMigrate(&Cat{})
+    db.AutoMigrate(&User{})
+
+    password := []byte("@#$RF@!718")
+
+    hashed, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+    if err != nil {
+        panic(err)
+    }
+
+    var user User
+    db.FirstOrCreate(&user, User{
+        Username: "admin",
+    })
+
+    user.Password = string(hashed)
+    db.Save(&user)
 
     return db
 }
@@ -80,6 +103,21 @@ func setupRouter(api Api) *gin.Engine {
         }
 
         c.JSON(200, cats)
+    })
+
+    r.POST("/login", func(c *gin.Context) {
+        var body, user User
+        c.BindJSON(&body)
+
+        api.Database.Where("username = ?", body.Username).Find(&user)
+
+        err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password))
+        if err != nil {
+            c.String(400, "invalid credentials")
+            return
+        }
+
+        c.String(200, "login ok")
     })
 
     return r

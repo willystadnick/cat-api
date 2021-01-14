@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -62,4 +63,38 @@ func TestBreedsRouteWithNameSib(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 	assert.Equal(t, 1, len(cats))
+}
+
+func TestLoginRouteSuccess(t *testing.T) {
+	api := setup()
+
+	body, _ := json.Marshal(map[string]string{
+		"username": "admin",
+		"password": "@#$RF@!718",
+	})
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
+	api.Router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, "login ok", w.Body.String())
+
+}
+
+func TestLoginRouteInvalidCredentials(t *testing.T) {
+	api := setup()
+
+	body, _ := json.Marshal(map[string]string{
+		"username": "admin",
+		"password": "admin",
+	})
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
+	api.Router.ServeHTTP(w, req)
+
+	assert.Equal(t, 400, w.Code)
+	assert.Equal(t, "invalid credentials", w.Body.String())
+
 }
